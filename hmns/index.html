@@ -11,7 +11,7 @@
       
       
       <link rel="shortcut icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.3.0">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.3.2">
     
     
       
@@ -19,7 +19,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.6e35a1a6.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.fe0cca5b.min.css">
       
       
     
@@ -449,8 +449,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../community/" title="The EasyBuild Community" class="md-nav__link">
-      The EasyBuild Community
+    <a href="../community/" title="The EasyBuild community" class="md-nav__link">
+      The EasyBuild community
     </a>
   </li>
 
@@ -673,7 +673,7 @@ consists of a <em>hierarchy</em> of module files.</p>
 <li>and an <strong>MPI</strong> level, which houses module files for software that was installed using a toolchain that includes (at least) a compiler and MPI component;</li>
 </ul>
 <p>Here is a simple example of such a 3-level module hierarchy:</p>
-<div align="center"><img src="../img/hmns.png" width="400px"/></div>
+<div align="center"><img src="../img/hmns.png" width="60%"/></div>
 
 <p>In this example the core level only includes a single module <code>GCC/9.3.0</code>,
 while  the compiler level includes two modules: <code>OpenMPI/4.0.3</code> and <code>MPICH/3.3.2</code>. 
@@ -716,7 +716,7 @@ in this level of the module hierarchy.</p>
 <h4 id="length-of-module-names">Length of module names<a class="headerlink" href="#length-of-module-names" title="Permanent link">&para;</a></h4>
 <p>When using a flat module naming scheme, module names can be fairly long and perhaps confusing. For our <code>HDF5</code> installation for example,
 we have <code>HDF5/1.10.6-gompi-2020a</code> as module name. The <code>-gompi-2020a</code> part of the name refers to the toolchain that was
-used for this installation, but it may be confusing to some people (what's kind of Pokémon is a "gompi"?!).</p>
+used for this installation, but it may be confusing to some people (what kind of Pokémon is a "gompi"?!).</p>
 <p>In the example module hierarchy shown above, the module for <code>HDF5</code> is named <code>HDF5/1.10.6</code> which is basically the bare
 essentials: software name and version. That's way better, nice and clean!</p>
 <h4 id="amount-of-available-modules">Amount of available modules<a class="headerlink" href="#amount-of-available-modules" title="Permanent link">&para;</a></h4>
@@ -754,6 +754,14 @@ is available right after login, which could be the ones used in the most recent 
 recommended versions. More experienced users could then leverage the "<code>module spider</code>" command to navigate
 the module hierarchy.</p>
 <h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>This example will not work when running the <a href="../practical_information/#using-singularity">prepared container
+image using Singularity</a></strong>,
+because the <code>/easybuild</code> directory is read-only in this case,
+and EasyBuild still requires write access to <code>/easybuild/software</code>
+even when generate module files outside of <code>/easybuild</code>.</p>
+</div>
 <p>Now that we know more about hierarchical module naming schemes,
 let us see how EasyBuild can help us with generating a hierarchical module tree.</p>
 <p>In this example we will use EasyBuild to generate modules organised in a hierarchy
@@ -881,7 +889,26 @@ Compiler  Core  MPI
 </code></pre></div>
 
 <p>Nice and short module names, but only a limited set of them.</p>
-<p>The gateway module here is the <code>GCC/9.3.0</code> compiler module, so let us load that:</p>
+<p>We know a module file exists for <code>HDF5</code>, but we can't see it yet (and hence
+we can't load it either).</p>
+<div class="highlight"><pre><span></span><code>$ module avail HDF5
+No module(s) or extension(s) found!
+Use &quot;module spider&quot; to find all possible modules and extensions.
+</code></pre></div>
+
+<p>Let us see if <code>module spider</code> is of any help, as "<code>module avail</code>" so kindly suggests:</p>
+<div class="highlight"><pre><span></span><code>$ module spider HDF5
+...
+
+    You will need to load all module(s) on any one of the lines below
+    before the &quot;HDF5/1.10.6&quot; module is available to load.
+
+      GCC/9.3.0  OpenMPI/4.0.3
+</code></pre></div>
+
+<p>This tells us we need to load two gateway modules before we can load the module
+for HDF5.</p>
+<p>Let us start with loading the <code>GCC</code> compiler module:</p>
 <div class="highlight"><pre><span></span><code>module load GCC/9.3.0
 </code></pre></div>
 
@@ -903,28 +930,12 @@ Compiler  Core  MPI
    GCC/9.3.0   (L)    binutils/2.34        gompi/2020a       zlib/1.2.11
 </code></pre></div>
 
-<p>Good news! We now have additional modules available!</p>
+<p>Good news, we now have additional modules available!</p>
 <p>The compiler level of our hierarchy actually consists of two directories here: <code>Compiler/GCCcore/9.3.0</code>
 and <code>Compiler/GCC/9.3.0</code>. The modules in the <code>GCCcore</code> directory are ones we can use in other compiler
 toolchains that use GCC 9.3.0 as a base compiler (the details of that are out of scope here).</p>
 <p>The module we are interested in is <code>OpenMPI/4.0.3</code>, which is another gateway module.</p>
-<p>We can figure this out by asking Lmod whether a module exists for HDF5 using the "<code>module spider</code>" command,
-as suggested in the output of "<code>module avail HDF5</code>":</p>
-<div class="highlight"><pre><span></span><code>$ module avail HDF5
-No module(s) or extension(s) found!
-Use &quot;module spider&quot; to find all possible modules and extensions.
-</code></pre></div>
-
-<div class="highlight"><pre><span></span><code>$ module spider HDF5
-...
-
-    You will need to load all module(s) on any one of the lines below
-    before the &quot;HDF5/1.10.6&quot; module is available to load.
-
-      GCC/9.3.0  OpenMPI/4.0.3
-</code></pre></div>
-
-<p>This output tells us that there does indeed exist a module for <code>HDF5</code>, but that
+<p>Remember that the "<code>module spider</code>" output told us that there does indeed exist a module for <code>HDF5</code>, but that
 we need to load <em>both</em> the <code>GCC/9.3.0</code> and <code>OpenMPI/4.0.3</code> modules first.</p>
 <p>So, let us do exactly that (remember that <code>GCC/9.3.0</code> is already loaded):</p>
 <div class="highlight"><pre><span></span><code>module load OpenMPI/4.0.3
@@ -952,7 +963,16 @@ h5dump: Version 1.10.6
 </code></pre></div>
 
 <p>If you now check which modules are loaded via "<code>module list</code>", you will notice that all module names
-and nice and short now, which is one of the advantages of using a hierarchical module tree.</p>
+and nice and short now, which is one of the advantages of using a hierarchical module tree:</p>
+<div class="highlight"><pre><span></span><code>$ module list
+
+Currently Loaded Modules:
+  <span class="m">1</span><span class="o">)</span> GCCcore/9.3.0   <span class="m">5</span><span class="o">)</span> numactl/2.0.13      <span class="m">9</span><span class="o">)</span> hwloc/2.2.0    <span class="m">13</span><span class="o">)</span> HDF5/1.10.6
+  <span class="m">2</span><span class="o">)</span> zlib/1.2.11     <span class="m">6</span><span class="o">)</span> XZ/5.2.5           <span class="m">10</span><span class="o">)</span> UCX/1.8.0
+  <span class="m">3</span><span class="o">)</span> binutils/2.34   <span class="m">7</span><span class="o">)</span> libxml2/2.9.10     <span class="m">11</span><span class="o">)</span> OpenMPI/4.0.3
+  <span class="m">4</span><span class="o">)</span> GCC/9.3.0       <span class="m">8</span><span class="o">)</span> libpciaccess/0.16  <span class="m">12</span><span class="o">)</span> Szip/2.1.1
+</code></pre></div>
+
 <h2 id="exercise">Exercise<a class="headerlink" href="#exercise" title="Permanent link">&para;</a></h2>
 <p>Now it is your turn!</p>
 <p>Try to get a feeling for how a hierarchical module tree works by:</p>
@@ -1008,6 +1028,14 @@ module spider SciPy-bundle/2020.03-Python-3.8.2
 </code></pre></div></li>
 </ul>
 </details>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>This exercise will not work when running the <a href="../practical_information/#using-singularity">prepared container
+image using Singularity</a></strong>,
+because the <code>/easybuild</code> directory is read-only in this case,
+and EasyBuild still requires write access to <code>/easybuild/software</code>
+even when generate module files outside of <code>/easybuild</code>.</p>
+</div>
                 
                   
                     
@@ -1016,7 +1044,7 @@ module spider SciPy-bundle/2020.03-Python-3.8.2
 <div class="md-source-date">
   <small>
     
-      Last update: June 18, 2020
+      Last update: June 22, 2020
     
   </small>
 </div>
@@ -1088,15 +1116,6 @@ module spider SciPy-bundle/2020.03-Python-3.8.2
         
         
       
-      <a href="https://github.com/easybuilders" target="_blank" rel="noopener" title="github.com" class="md-footer-social__link">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 16"><path fill-rule="evenodd" d="M18.53 12.03h-.02c.009 0 .015.01.024.011h.006l-.01-.01zm.004.011c-.093.001-.327.05-.574.05-.78 0-1.05-.36-1.05-.83V8.13h1.59c.09 0 .16-.08.16-.19v-1.7c0-.09-.08-.17-.16-.17h-1.59V3.96c0-.08-.05-.13-.14-.13h-2.16c-.09 0-.14.05-.14.13v2.17s-1.09.27-1.16.28c-.08.02-.13.09-.13.17v1.36c0 .11.08.19.17.19h1.11v3.28c0 2.44 1.7 2.69 2.86 2.69.53 0 1.17-.17 1.27-.22.06-.02.09-.09.09-.16v-1.5a.177.177 0 00-.146-.18zM42.23 9.84c0-1.81-.73-2.05-1.5-1.97-.6.04-1.08.34-1.08.34v3.52s.49.34 1.22.36c1.03.03 1.36-.34 1.36-2.25zm2.43-.16c0 3.43-1.11 4.41-3.05 4.41-1.64 0-2.52-.83-2.52-.83s-.04.46-.09.52c-.03.06-.08.08-.14.08h-1.48c-.1 0-.19-.08-.19-.17l.02-11.11c0-.09.08-.17.17-.17h2.13c.09 0 .17.08.17.17v3.77s.82-.53 2.02-.53l-.01-.02c1.2 0 2.97.45 2.97 3.88zm-8.72-3.61h-2.1c-.11 0-.17.08-.17.19v5.44s-.55.39-1.3.39-.97-.34-.97-1.09V6.25c0-.09-.08-.17-.17-.17h-2.14c-.09 0-.17.08-.17.17v5.11c0 2.2 1.23 2.75 2.92 2.75 1.39 0 2.52-.77 2.52-.77s.05.39.08.45c.02.05.09.09.16.09h1.34c.11 0 .17-.08.17-.17l.02-7.47c0-.09-.08-.17-.19-.17zm-23.7-.01h-2.13c-.09 0-.17.09-.17.2v7.34c0 .2.13.27.3.27h1.92c.2 0 .25-.09.25-.27V6.23c0-.09-.08-.17-.17-.17zm-1.05-3.38c-.77 0-1.38.61-1.38 1.38 0 .77.61 1.38 1.38 1.38.75 0 1.36-.61 1.36-1.38 0-.77-.61-1.38-1.36-1.38zm16.49-.25h-2.11c-.09 0-.17.08-.17.17v4.09h-3.31V2.6c0-.09-.08-.17-.17-.17h-2.13c-.09 0-.17.08-.17.17v11.11c0 .09.09.17.17.17h2.13c.09 0 .17-.08.17-.17V8.96h3.31l-.02 4.75c0 .09.08.17.17.17h2.13c.09 0 .17-.08.17-.17V2.6c0-.09-.08-.17-.17-.17zM8.81 7.35v5.74c0 .04-.01.11-.06.13 0 0-1.25.89-3.31.89-2.49 0-5.44-.78-5.44-5.92S2.58 1.99 5.1 2c2.18 0 3.06.49 3.2.58.04.05.06.09.06.14L7.94 4.5c0 .09-.09.2-.2.17-.36-.11-.9-.33-2.17-.33-1.47 0-3.05.42-3.05 3.73s1.5 3.7 2.58 3.7c.92 0 1.25-.11 1.25-.11v-2.3H4.88c-.11 0-.19-.08-.19-.17V7.35c0-.09.08-.17.19-.17h3.74c.11 0 .19.08.19.17z"/></svg>
-      </a>
-    
-      
-      
-        
-        
-      
       <a href="https://twitter.com/easy_build" target="_blank" rel="noopener" title="twitter.com" class="md-footer-social__link">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
       </a>
@@ -1128,14 +1147,14 @@ module spider SciPy-bundle/2020.03-Python-3.8.2
     </div>
     
       <script src="../assets/javascripts/vendor.d710d30a.min.js"></script>
-      <script src="../assets/javascripts/bundle.a14cc5fd.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      <script src="../assets/javascripts/bundle.7f4f3c92.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
       
       <script>
         app = initialize({
           base: "..",
           features: ["instant"],
           search: Object.assign({
-            worker: "../assets/javascripts/worker/search.7a2ea5ba.min.js"
+            worker: "../assets/javascripts/worker/search.9b3611bd.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>

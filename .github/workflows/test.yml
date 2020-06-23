@@ -18,7 +18,7 @@ jobs:
       with:
         check_filenames: true
 
-    - name: markdown-link-check:
+    - name: markdown-link-check
       uses: gaurav-nelson/github-action-markdown-link-check@v1
 
     #- name: Markdown Linting Action

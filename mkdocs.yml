@@ -54,3 +54,5 @@ extra:
       link: https://www.youtube.com/c/easybuilders
     - icon: fontawesome/solid/book
       link: https://easybuild.readthedocs.io
+extra_javascript:
+  - javascripts/read_and_qr.js
